@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Horario · Curso 2026/27</title>
+<meta name="theme-color" content="#0a0a0b">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Horario">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+  :root{
+    --bg:#0a0a0b; --panel:#131315; --panel2:#1c1c1f; --line:#2a2a30;
+    --text:#eaeaec; --muted:#95969f; --accent:#b8975a; --accent2:#d8bd82;
+    --on-accent:#141109;
+    --alta:#ef4444; --media:#f59e0b; --baja:#22c55e;
+    --t-entrega:#3b82f6; --t-examen:#ef4444; --t-practica:#a855f7;
+    --t-recordatorio:#f59e0b; --t-otro:#64748b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.4}
+  header{background:linear-gradient(135deg,#161618,#0b0b0c);padding:18px 24px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  header h1{font-size:20px;font-weight:700;letter-spacing:.3px}
+  header h1 span{color:var(--accent2)}
+  .tabs{display:flex;gap:6px;background:var(--panel);padding:5px;border-radius:12px}
+  .tab{padding:9px 16px;border:none;background:transparent;color:var(--muted);font-size:14px;font-weight:600;
+    border-radius:8px;cursor:pointer;transition:.15s}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--accent);color:var(--on-accent)}
+  main{padding:24px;max-width:1200px;margin:0 auto}
+  .view{display:none}
+  .view.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+  .seg{display:flex;background:var(--panel);border-radius:10px;padding:4px;gap:4px}
+  .seg button{padding:8px 16px;border:none;background:transparent;color:var(--muted);font-weight:600;
+    border-radius:7px;cursor:pointer;font-size:13px}
+  .seg button.active{background:var(--accent);color:var(--on-accent)}
+  .btn{padding:9px 16px;border:none;border-radius:9px;background:var(--accent);color:var(--on-accent);font-weight:600;
+    cursor:pointer;font-size:14px;transition:.15s}
+  .btn:hover{background:var(--accent2)}
+  .btn.ghost{background:var(--panel2);color:var(--text)}
+  .btn.ghost:hover{background:#324158}
+
+  .grid-wrap{background:var(--panel);border-radius:14px;padding:10px;overflow-x:auto;border:1px solid var(--line)}
+  .timetable{display:grid;grid-template-columns:56px repeat(5,minmax(120px,1fr));
+    grid-auto-rows:30px;gap:2px;min-width:680px}
+  .th{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
+    background:var(--panel2);border-radius:8px;color:var(--accent2);grid-row:1}
+  .th.th-today{background:var(--accent);color:var(--on-accent);box-shadow:0 0 0 1px var(--accent2)}
+  .col-today{background:rgba(184,151,90,.09);border-radius:8px;pointer-events:none}
+  .tlabel{font-size:11px;color:var(--muted);display:flex;align-items:flex-start;justify-content:flex-end;
+    padding-right:6px;padding-top:1px}
+  .cls{border-radius:8px;padding:6px 8px;font-size:11.5px;overflow:hidden;cursor:default;
+    border-left:4px solid var(--line);background:var(--panel2);transition:.15s;position:relative}
+  .cls:hover{filter:brightness(1.15);transform:scale(1.01)}
+  .cls b{display:block;font-size:11.5px;line-height:1.2;margin-bottom:2px;font-weight:700}
+  .cls small{color:var(--muted);font-size:10px}
+  .cls.Alta{border-left-color:var(--alta)}
+  .cls.Media{border-left-color:var(--media)}
+  .cls.Baja{border-left-color:var(--baja)}
+  .legend{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  .stats{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;flex:1;min-width:130px}
+  .stat .n{font-size:24px;font-weight:800;color:var(--accent2)}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .cal-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .cal-head h2{font-size:18px;font-weight:700;min-width:200px;text-align:center;text-transform:capitalize}
+  .nav{width:38px;height:38px;border-radius:10px;border:none;background:var(--panel2);color:var(--text);
+    font-size:18px;cursor:pointer}
+  .nav:hover{background:#324158}
+  .month{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .dow{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding:6px 0}
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:96px;padding:6px;
+    cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:3px}
+  .day:hover{border-color:var(--accent)}
+  .day.other{opacity:.4}
+  .day.today{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2)}
+  .day .num{font-size:13px;font-weight:700;color:var(--muted)}
+  .day.today .num{color:var(--accent2)}
+  .ev{font-size:10.5px;padding:2px 6px;border-radius:5px;color:#fff;font-weight:600;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+
+  .up-list{display:flex;flex-direction:column;gap:10px}
+  .up-item{background:var(--panel);border:1px solid var(--line);border-left:5px solid;border-radius:12px;
+    padding:14px 18px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:.15s}
+  .up-item:hover{border-color:var(--accent)}
+  .up-when{text-align:center;min-width:64px}
+  .up-when .big{font-size:22px;font-weight:800;line-height:1}
+  .up-when .sm{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .up-body{flex:1}
+  .up-body b{font-size:15px}
+  .up-body .meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;color:#fff;text-transform:uppercase}
+  .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:15px}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;
+    z-index:50;backdrop-filter:blur(3px)}
+  .overlay.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;width:min(440px,92vw);
+    box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .modal h3{margin-bottom:16px;font-size:18px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+  .field input,.field select,.field textarea{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--text);font-size:14px;font-family:inherit}
+  .field textarea{resize:vertical;min-height:60px}
+  .modal-actions{display:flex;gap:10px;margin-top:8px}
+  .modal-actions .btn{flex:1}
+  .btn.danger{background:#7f1d1d;color:#fff}
+  .btn.danger:hover{background:#991b1b}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+  .scroll-hint{display:none;font-size:11px;color:var(--muted);margin-top:8px;text-align:center;letter-spacing:.2px}
+
+  @media (max-width:640px){
+    header{padding:14px 14px}
+    header h1{font-size:17px}
+    .tabs{width:100%;justify-content:center}
+    .tab{padding:8px 12px;font-size:13px}
+    main{padding:14px 12px}
+    .toolbar{flex-direction:column;align-items:stretch;gap:10px}
+    .seg{justify-content:center}
+    .cal-head{justify-content:center}
+    .cal-head h2{min-width:0;flex:1;font-size:16px}
+    .timetable{grid-template-columns:44px repeat(5,minmax(94px,1fr));min-width:540px}
+    .scroll-hint{display:block}
+    .day{min-height:72px;padding:4px}
+    .day .num{font-size:12px}
+    .ev{font-size:9.5px;padding:1px 4px}
+    .stat{min-width:calc(50% - 7px);padding:12px 14px}
+    .stat .n{font-size:21px}
+    .up-item{padding:12px 14px;gap:12px}
+    .modal{padding:20px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Horario <span>· Curso 2026/27</span></h1>
+  <div class="tabs">
+    <button class="tab active" data-view="horario">Horario semanal</button>
+    <button class="tab" data-view="calendario">Calendario</button>
+    <button class="tab" data-view="proximas">Próximas entregas</button>
+  </div>
+</header>
+
+<main>
+  <section class="view active" id="view-horario">
+    <div class="toolbar">
+      <div class="seg" id="cuatri-seg">
+        <button class="active" data-c="1º">1º Cuatrimestre</button>
+        <button data-c="2º">2º Cuatrimestre</button>
+      </div>
+    </div>
+    <div class="grid-wrap"><div class="timetable" id="timetable"></div></div>
+    <div class="scroll-hint">Desliza para ver toda la semana →</div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--alta)"></i> Dificultad alta</span>
+      <span><i class="dot" style="background:var(--media)"></i> Media</span>
+      <span><i class="dot" style="background:var(--baja)"></i> Baja</span>
+    </div>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="view" id="view-calendario">
+    <div class="toolbar">
+      <div class="cal-head">
+        <button class="nav" id="prevM">‹</button>
+        <h2 id="monthLabel"></h2>
+        <button class="nav" id="nextM">›</button>
+      </div>
+      <button class="btn" id="addBtn">+ Añadir entrega / evento</button>
+    </div>
+    <div class="month" id="month"></div>
+  </section>
+
+  <section class="view" id="view-proximas">
+    <div class="toolbar">
+      <h2 style="font-size:18px">⏳ Lo que tienes por delante</h2>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost" id="exportBtn">Exportar copia</button>
+        <button class="btn ghost" id="importBtn">Importar</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none">
+      </div>
+    </div>
+    <div class="up-list" id="upcoming"></div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">Nueva entrega</h3>
+    <input type="hidden" id="evId">
+    <div class="field"><label>Título</label><input id="evTitle" placeholder="Ej. Entrega práctica 1"></div>
+    <div class="field"><label>Fecha</label><input type="date" id="evDate"></div>
+    <div class="field"><label>Hora (opcional)</label><input type="time" id="evTime"></div>
+    <div class="field"><label>Tipo</label>
+      <select id="evType">
+        <option value="entrega">📤 Entrega</option>
+        <option value="examen">📝 Examen</option>
+        <option value="practica">🧪 Práctica</option>
+        <option value="recordatorio">🔔 Recordatorio</option>
+        <option value="otro">📌 Otro</option>
+      </select>
+    </div>
+    <div class="field"><label>Asignatura (opcional)</label><select id="evSubject"></select></div>
+    <div class="field"><label>Notas (opcional)</label><textarea id="evNotes" placeholder="Detalles, enlace, aula…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="deleteBtn" style="display:none">Eliminar</button>
+      <button class="btn ghost" id="cancelBtn">Cancelar</button>
+      <button class="btn" id="saveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   DATOS DEL HORARIO  ·  Si cambias algo, envíame el CSV/Excel y lo actualizo.
+   (start/end están en minutos desde medianoche; dayIndex 0=Lun ... 4=Vie)
+   ========================================================================= */
+const HORARIO = {"1º":{"ects":"40","horas":"26,5","classes":[{"name":"Interacción Persona Ordenador","code":"5633","curso":"","dif":"Baja","dayIndex":0,"start":930,"end":1050,"startTxt":"15:30","endTxt":"17:30"},{"name":"Aprendizaje Estad. y Data Mining","code":"5635","curso":"","dif":"Alta","dayIndex":0,"start":1050,"end":1170,"startTxt":"17:30","endTxt":"19:30"},{"name":"Inteligencia Artificial I","code":"5634","curso":"","dif":"Alta","dayIndex":0,"start":1170,"end":1290,"startTxt":"19:30","endTxt":"21:30"},{"name":"Arquitectura y Org. de Computadores","code":"5621","curso":"2º","dif":"Alta","dayIndex":0,"start":720,"end":840,"startTxt":"12:00","endTxt":"14:00"},{"name":"Estructura de Datos y Algoritmos","code":"5626","curso":"2º","dif":"Alta","dayIndex":0,"start":480,"end":600,"startTxt":"08:00","endTxt":"10:00"},{"name":"Estructura de Datos y Algoritmos","code":"5626","curso":"2º","dif":"Alta","dayIndex":1,"start":480,"end":600,"startTxt":"08:00","endTxt":"10:00"},{"name":"Ética y Deontología Profesional","code":"5638","curso":"","dif":"Baja","dayIndex":1,"start":1020,"end":1140,"startTxt":"17:00","endTxt":"19:00"},{"name":"Seguridad en Aplicaciones Móviles y Web","code":"56417","curso":"","dif":"Media","dayIndex":1,"start":1140,"end":1290,"startTxt":"19:00","endTxt":"21:30"},{"name":"Interacción Persona Ordenador","code":"5633","curso":"","dif":"Baja","dayIndex":2,"start":930,"end":1050,"startTxt":"15:30","endTxt":"17:30"},{"name":"Ingeniería del Software II","code":"5636","curso":"","dif":"Media","dayIndex":2,"start":1050,"end":1170,"startTxt":"17:30","endTxt":"19:30"},{"name":"Arquitectura y Org. de Computadores","code":"5621","curso":"2º","dif":"Alta","dayIndex":3,"start":720,"end":840,"startTxt":"12:00","endTxt":"14:00"},{"name":"Ingeniería del Software II","code":"5636","curso":"","dif":"Media","dayIndex":3,"start":930,"end":1050,"startTxt":"15:30","endTxt":"17:30"},{"name":"Aprendizaje Estad. y Data Mining","code":"5635","curso":"","dif":"Alta","dayIndex":3,"start":1170,"end":1290,"startTxt":"19:30","endTxt":"21:30"}]},"2º":{"ects":"39","horas":"26","classes":[{"name":"Programación Orient. a Objetos","code":"5612","curso":"1º","dif":"Alta","dayIndex":0,"start":600,"end":720,"startTxt":"10:00","endTxt":"12:00"},{"name":"Ética y Deontología Profesional","code":"5638","curso":"","dif":"Baja","dayIndex":0,"start":1050,"end":1170,"startTxt":"17:30","endTxt":"19:30"},{"name":"Programación Orient. a Objetos","code":"5612","curso":"1º","dif":"Alta","dayIndex":1,"start":600,"end":720,"startTxt":"10:00","endTxt":"12:00"},{"name":"Complejidad Computacional","code":"5630","curso":"","dif":"Alta","dayIndex":1,"start":930,"end":1050,"startTxt":"15:30","endTxt":"17:30"},{"name":"Bases de Datos Avanzadas","code":"5641","curso":"","dif":"Media","dayIndex":1,"start":1050,"end":1170,"startTxt":"17:30","endTxt":"19:30"},{"name":"Inteligencia Artificial II","code":"5637","curso":"","dif":"Alta","dayIndex":1,"start":1170,"end":1290,"startTxt":"19:30","endTxt":"21:30"},{"name":"Proyecto II","code":"5640","curso":"","dif":"Baja","dayIndex":2,"start":1050,"end":1170,"startTxt":"17:30","endTxt":"19:30"},{"name":"Seguridad en el Internet de las Cosas","code":"56418","curso":"","dif":"Media","dayIndex":2,"start":1170,"end":1230,"startTxt":"19:30","endTxt":"20:30"},{"name":"Tecnología Blockchain","code":"56419","curso":"","dif":"Baja","dayIndex":2,"start":1230,"end":1290,"startTxt":"20:30","endTxt":"21:30"},{"name":"Complejidad Computacional","code":"5630","curso":"","dif":"Alta","dayIndex":3,"start":930,"end":1050,"startTxt":"15:30","endTxt":"17:30"},{"name":"Administración de Sistemas","code":"5639","curso":"","dif":"Baja","dayIndex":3,"start":1050,"end":1170,"startTxt":"17:30","endTxt":"19:30"},{"name":"Inteligencia Artificial II","code":"5637","curso":"","dif":"Alta","dayIndex":3,"start":1170,"end":1290,"startTxt":"19:30","endTxt":"21:30"},{"name":"Cálculo","code":"CALC","curso":"","dif":"Alta","dayIndex":3,"start":600,"end":720,"startTxt":"10:00","endTxt":"12:00"},{"name":"Cálculo","code":"CALC","curso":"","dif":"Alta","dayIndex":4,"start":600,"end":720,"startTxt":"10:00","endTxt":"12:00"}]}};
+
+const DAY_FULL=['Lunes','Martes','Miércoles','Jueves','Viernes'];
+const START_H=8,END_H=22;
+let curCuatri='1º';
+
+/* ===== HORARIO SEMANAL ===== */
+function renderTimetable(){
+  const tt=document.getElementById('timetable');
+  tt.innerHTML='';
+  const rows=(END_H-START_H)*2;
+  tt.style.gridTemplateRows=`36px repeat(${rows},28px)`;
+  const todayIdx=(new Date().getDay()+6)%7; // 0=Lun … 4=Vie, 5-6 finde
+  DAY_FULL.forEach((d,i)=>{
+    const el=document.createElement('div');el.className='th'+(i===todayIdx?' th-today':'');el.textContent=d;
+    el.style.gridColumn=i+2;el.style.gridRow=1;tt.appendChild(el);
+  });
+  if(todayIdx<=4){
+    const band=document.createElement('div');band.className='col-today';
+    band.style.gridColumn=todayIdx+2;band.style.gridRow=`2 / span ${rows}`;
+    tt.appendChild(band);
+  }
+  for(let h=START_H;h<END_H;h++){
+    const el=document.createElement('div');el.className='tlabel';
+    el.textContent=String(h).padStart(2,'0')+':00';
+    el.style.gridColumn=1;el.style.gridRow=`${(h-START_H)*2+2} / span 2`;
+    tt.appendChild(el);
+  }
+  (HORARIO[curCuatri]?.classes||[]).forEach(c=>{
+    const startRow=(c.start-START_H*60)/30+2;
+    const span=(c.end-c.start)/30;
+    const el=document.createElement('div');
+    el.className='cls '+(c.dif||'');
+    el.style.gridColumn=c.dayIndex+2;
+    el.style.gridRow=`${startRow} / span ${span}`;
+    el.innerHTML=`<b>${c.name}</b><small>${c.startTxt}–${c.endTxt}${c.curso?' · '+c.curso+' curso':''}</small>`;
+    el.title=`${c.name}\n${c.startTxt}–${c.endTxt}${c.dif?'\nDificultad: '+c.dif:''}`;
+    tt.appendChild(el);
+  });
+  renderStats();
+}
+function renderStats(){
+  const c=HORARIO[curCuatri]||{classes:[]};
+  const altas=c.classes.filter(x=>x.dif==='Alta').length;
+  const asigs=new Set(c.classes.map(x=>x.code)).size;
+  const mins=c.classes.reduce((s,x)=>s+(x.end-x.start),0);
+  const horas=(mins/60).toLocaleString('es-ES',{maximumFractionDigits:1});
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="n">${asigs}</div><div class="l">Asignaturas</div></div>
+    <div class="stat"><div class="n">${c.ects||'–'}</div><div class="l">Créditos ECTS</div></div>
+    <div class="stat"><div class="n">${horas} h</div><div class="l">Horas/semana</div></div>
+    <div class="stat"><div class="n">${altas}</div><div class="l">Bloques de dificultad alta</div></div>`;
+}
+
+/* ===== EVENTOS ===== */
+const KEY='horario_eventos_2627';
+let events=JSON.parse(localStorage.getItem(KEY)||'[]');
+let calDate=new Date(2026,8,1);
+function save(){localStorage.setItem(KEY,JSON.stringify(events));}
+
+const MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const TYPE_COLOR={entrega:'var(--t-entrega)',examen:'var(--t-examen)',practica:'var(--t-practica)',recordatorio:'var(--t-recordatorio)',otro:'var(--t-otro)'};
+const TYPE_LABEL={entrega:'Entrega',examen:'Examen',practica:'Práctica',recordatorio:'Recordatorio',otro:'Otro'};
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayStr(){return fmt(new Date());}
+
+function renderMonth(){
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  document.getElementById('monthLabel').textContent=`${MONTHS[m]} ${y}`;
+  const month=document.getElementById('month');month.innerHTML='';
+  ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].forEach(d=>{
+    const el=document.createElement('div');el.className='dow';el.textContent=d;month.appendChild(el);
+  });
+  const first=new Date(y,m,1);
+  let startDow=(first.getDay()+6)%7;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const prevDays=new Date(y,m,0).getDate();
+  const cells=[];
+  for(let i=startDow-1;i>=0;i--) cells.push({d:prevDays-i,other:true,date:new Date(y,m-1,prevDays-i)});
+  for(let d=1;d<=daysInMonth;d++) cells.push({d,other:false,date:new Date(y,m,d)});
+  while(cells.length<42){const n=cells.length-startDow-daysInMonth+1;cells.push({d:n,other:true,date:new Date(y,m+1,n)});}
+  cells.slice(0,42).forEach(c=>{
+    const ds=fmt(c.date);
+    const el=document.createElement('div');
+    el.className='day'+(c.other?' other':'')+(ds===todayStr()?' today':'');
+    el.innerHTML=`<div class="num">${c.d}</div>`;
+    events.filter(e=>e.date===ds).sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach(e=>{
+      const ev=document.createElement('div');ev.className='ev';
+      ev.style.background=TYPE_COLOR[e.type];
+      ev.textContent=(e.time?e.time+' ':'')+e.title;
+      ev.onclick=(x)=>{x.stopPropagation();openModal(e);};
+      el.appendChild(ev);
+    });
+    el.onclick=()=>openModal(null,ds);
+    month.appendChild(el);
+  });
+}
+
+function renderUpcoming(){
+  const wrap=document.getElementById('upcoming');
+  const today=todayStr();
+  const list=events.filter(e=>e.date>=today).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+  if(!list.length){wrap.innerHTML='<div class="empty">No tienes nada apuntado todavía.<br>Ve al Calendario y añade tu primera entrega 📌</div>';return;}
+  wrap.innerHTML='';
+  list.forEach(e=>{
+    const d=new Date(e.date+'T00:00');
+    const diff=Math.round((d-new Date(today+'T00:00'))/86400000);
+    const when=diff===0?'HOY':diff===1?'MAÑANA':'en '+diff+' días';
+    const item=document.createElement('div');
+    item.className='up-item';item.style.borderLeftColor=TYPE_COLOR[e.type];
+    item.innerHTML=`
+      <div class="up-when"><div class="big">${d.getDate()}</div><div class="sm">${MONTHS[d.getMonth()].slice(0,3)}</div></div>
+      <div class="up-body"><b>${e.title}</b>
+        <div class="meta">${e.subject?e.subject+' · ':''}${e.time?e.time+' · ':''}${when}${e.notes?' · '+e.notes:''}</div></div>
+      <span class="badge" style="background:${TYPE_COLOR[e.type]}">${TYPE_LABEL[e.type]}</span>`;
+    item.onclick=()=>openModal(e);
+    wrap.appendChild(item);
+  });
+}
+
+/* ===== MODAL ===== */
+const overlay=document.getElementById('overlay');
+function fillSubjects(){
+  const sel=document.getElementById('evSubject');
+  const all=[...(HORARIO['1º']?.classes||[]),...(HORARIO['2º']?.classes||[])];
+  const names=[...new Set(all.map(s=>s.name))].sort();
+  sel.innerHTML='<option value="">— Ninguna —</option>'+names.map(n=>`<option>${n}</option>`).join('');
+}
+function openModal(ev,presetDate){
+  document.getElementById('modalTitle').textContent=ev?'Editar evento':'Nueva entrega';
+  document.getElementById('evId').value=ev?ev.id:'';
+  document.getElementById('evTitle').value=ev?ev.title:'';
+  document.getElementById('evDate').value=ev?ev.date:(presetDate||todayStr());
+  document.getElementById('evTime').value=ev?ev.time||'':'';
+  document.getElementById('evType').value=ev?ev.type:'entrega';
+  document.getElementById('evSubject').value=ev?ev.subject||'':'';
+  document.getElementById('evNotes').value=ev?ev.notes||'':'';
+  document.getElementById('deleteBtn').style.display=ev?'block':'none';
+  overlay.classList.add('open');
+}
+function closeModal(){overlay.classList.remove('open');}
+function uid(){return 'e'+Math.random().toString(36).slice(2,9)+Date.now().toString(36);}
+
+document.getElementById('saveBtn').onclick=()=>{
+  const title=document.getElementById('evTitle').value.trim();
+  const date=document.getElementById('evDate').value;
+  if(!title||!date){alert('Pon al menos un título y una fecha.');return;}
+  const id=document.getElementById('evId').value;
+  const data={id:id||uid(),title,date,
+    time:document.getElementById('evTime').value,
+    type:document.getElementById('evType').value,
+    subject:document.getElementById('evSubject').value,
+    notes:document.getElementById('evNotes').value.trim()};
+  if(id){events=events.map(e=>e.id===id?data:e);}else{events.push(data);}
+  save();closeModal();renderMonth();renderUpcoming();
+};
+document.getElementById('deleteBtn').onclick=()=>{
+  const id=document.getElementById('evId').value;
+  if(id&&confirm('¿Eliminar este evento?')){events=events.filter(e=>e.id!==id);save();closeModal();renderMonth();renderUpcoming();}
+};
+document.getElementById('cancelBtn').onclick=closeModal;
+overlay.onclick=e=>{if(e.target===overlay)closeModal();};
+document.getElementById('addBtn').onclick=()=>openModal(null);
+
+/* ===== EXPORT / IMPORT ===== */
+document.getElementById('exportBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(events,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='mis-entregas-backup.json';a.click();
+};
+document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){events=d;save();renderMonth();renderUpcoming();alert('Importado correctamente ✓');}}catch{alert('Archivo no válido');}};
+  r.readAsText(f);
+};
+
+/* ===== NAVEGACIÓN ===== */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('view-'+t.dataset.view).classList.add('active');
+});
+document.querySelectorAll('#cuatri-seg button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#cuatri-seg button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');curCuatri=b.dataset.c;renderTimetable();
+});
+document.getElementById('prevM').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderMonth();};
+document.getElementById('nextM').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderMonth();};
+
+/* ===== ARRANQUE ===== */
+renderTimetable();renderMonth();renderUpcoming();fillSubjects();
+</script>
+</body>
+</html>
