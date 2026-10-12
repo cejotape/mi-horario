@@ -324,7 +324,7 @@ function renderStats(){
 /* ===== EVENTOS ===== */
 const KEY='horario_eventos_2627';
 let events=JSON.parse(localStorage.getItem(KEY)||'[]');
-let calDate=new Date(2026,8,1);
+let calDate=(()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),1);})();
 function save(){localStorage.setItem(KEY,JSON.stringify(events));}
 
 const MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
