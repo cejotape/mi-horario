@@ -137,6 +137,7 @@
   .btn.danger{background:#7f1d1d;color:#fff}
   .btn.danger:hover{background:#991b1b}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+  .exam-group{font-size:13px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 2px}
   .scroll-hint{display:none;font-size:11px;color:var(--muted);margin-top:8px;text-align:center;letter-spacing:.2px}
 
   @media (max-width:640px){
@@ -473,36 +474,38 @@ document.getElementById('nextM').onclick=()=>{calDate.setMonth(calDate.getMonth(
 /* ===== EXÁMENES =====
    Solo mis asignaturas. Fechas sacadas del cuadro oficial (grupo 3ºA).
    ord = convocatoria ordinaria · ext = extraordinaria · null = sin fecha en el cuadro */
+const A6='0.1/0.2/0.3/1.1/1.2/1.3',A5='0.1/0.2/0.3/1.2/1.3',A3='0.1/0.2/0.3',A2='0.2/0.3';
 const EXAMENES=[
-  {name:'Ingeniería del Software II',ord:{date:'2026-12-17',start:'15:00',end:'17:00'},ext:{date:'2027-06-21',start:'15:00',end:'17:00'}},
-  {name:'Aprendizaje Estad. y Data Mining',ord:{date:'2027-01-11',start:'15:00',end:'17:00'},ext:{date:'2027-06-18',start:'15:00',end:'17:00'}},
-  {name:'Interacción Persona Ordenador',ord:{date:'2027-01-13',start:'15:00',end:'17:00'},ext:{date:'2027-06-25',start:'15:00',end:'17:00'}},
-  {name:'Inteligencia Artificial I',ord:{date:'2027-01-14',start:'15:00',end:'17:00'},ext:{date:'2027-06-15',start:'16:00',end:'18:00'}},
-  {name:'Arquitectura y Org. de Computadores',ord:{date:'2027-01-15',start:'09:00',end:'11:00'},ext:{date:'2027-06-16',start:'09:00',end:'11:00'}},
-  {name:'Estructura de Datos y Algoritmos',ord:{date:'2027-01-19',start:'10:00',end:'14:00'},ext:{date:'2027-06-18',start:'09:00',end:'14:00'}},
-  {name:'Seguridad en Aplicaciones Móviles y Web',ord:{date:'2027-01-19',start:'15:00',end:'16:00'},ext:{date:'2027-06-30',start:'15:00',end:'16:00'}},
-  {name:'Bases de Datos Avanzadas',ord:{date:'2027-05-10',start:'15:00',end:'17:00'},ext:{date:'2027-06-17',start:'17:00',end:'19:00'}},
-  {name:'Seguridad en el Internet de las Cosas',ord:{date:'2027-05-12',start:'15:00',end:'16:00'},ext:{date:'2027-06-14',start:'20:00',end:'21:00'}},
-  {name:'Ética y Deontología Profesional · 1er parcial',ord:{date:'2026-12-15',start:'17:00',end:'19:00'},ext:null},
-  {name:'Ética y Deontología Profesional · 2º parcial',ord:{date:'2027-05-13',start:'15:00',end:'17:00'},ext:null},
-  {name:'Ética y Deontología Profesional',ord:null,ext:{date:'2027-06-29',start:'16:00',end:'18:00'}},
-  {name:'Inteligencia Artificial II',ord:{date:'2027-05-17',start:'15:00',end:'17:00'},ext:{date:'2027-06-22',start:'16:00',end:'19:00'}},
-  {name:'Administración de Sistemas',ord:{date:'2027-05-19',start:'15:00',end:'17:00'},ext:{date:'2027-07-01',start:'15:00',end:'17:00'}},
-  {name:'Programación Orient. a Objetos',ord:{date:'2027-05-21',start:'09:00',end:'11:00'},ext:{date:'2027-06-23',start:'09:00',end:'11:00'}},
-  {name:'Complejidad Computacional',ord:{date:'2027-05-24',start:'15:00',end:'17:00'},ext:{date:'2027-06-23',start:'16:00',end:'18:00'}},
-  {name:'Tecnología Blockchain',ord:{date:'2027-05-25',start:'15:00',end:'16:00'},ext:{date:'2027-06-19',start:'12:00',end:'13:00'}},
-  {name:'Proyecto II',ord:{date:'2027-05-27',start:'15:00',end:'20:00'},ext:{date:'2027-06-28',start:'15:00',end:'18:00'}},
-  {name:'Cálculo (MPI II)',ord:{date:'2027-05-10',start:'09:00',end:'12:00'},ext:{date:'2027-06-14',start:'09:00',end:'12:00'}}
+  {c:1,name:'Ética y Deontología Profesional · 1er parcial',ord:{date:'2026-12-15',start:'17:00',end:'19:00'},ext:null},
+  {c:1,name:'Ingeniería del Software II',ord:{date:'2026-12-17',start:'15:00',end:'17:00',aula:A6},ext:{date:'2027-06-21',start:'15:00',end:'17:00',aula:A6}},
+  {c:1,name:'Aprendizaje Estad. y Data Mining',ord:{date:'2027-01-11',start:'15:00',end:'17:00',aula:A5},ext:{date:'2027-06-18',start:'15:00',end:'17:00',aula:A5}},
+  {c:1,name:'Interacción Persona Ordenador',ord:{date:'2027-01-13',start:'15:00',end:'17:00',aula:A3},ext:{date:'2027-06-25',start:'15:00',end:'17:00',aula:A3}},
+  {c:1,name:'Inteligencia Artificial I',ord:{date:'2027-01-14',start:'15:00',end:'17:00',aula:A3},ext:{date:'2027-06-15',start:'16:00',end:'18:00',aula:A3}},
+  {c:1,name:'Arquitectura y Org. de Computadores',ord:{date:'2027-01-15',start:'09:00',end:'11:00',aula:A5},ext:{date:'2027-06-16',start:'09:00',end:'11:00',aula:A5}},
+  {c:1,name:'Estructura de Datos y Algoritmos',ord:{date:'2027-01-19',start:'10:00',end:'14:00',aula:A5},ext:{date:'2027-06-18',start:'09:00',end:'14:00',aula:A5}},
+  {c:1,name:'Seguridad en Aplicaciones Móviles y Web',ord:{date:'2027-01-19',start:'15:00',end:'16:00',aula:'1.6'},ext:{date:'2027-06-30',start:'15:00',end:'16:00',aula:'1.6'}},
+  {c:2,name:'Cálculo (MPI II)',ord:{date:'2027-05-10',start:'09:00',end:'12:00',aula:A6},ext:{date:'2027-06-14',start:'09:00',end:'12:00',aula:A6}},
+  {c:2,name:'Bases de Datos Avanzadas',ord:{date:'2027-05-10',start:'15:00',end:'17:00',aula:A3},ext:{date:'2027-06-17',start:'17:00',end:'19:00',aula:A3}},
+  {c:2,name:'Seguridad en el Internet de las Cosas',ord:{date:'2027-05-12',start:'15:00',end:'16:00',aula:'1.6'},ext:{date:'2027-06-14',start:'20:00',end:'21:00',aula:'1.6'}},
+  {c:2,name:'Ética y Deontología Profesional · 2º parcial',ord:{date:'2027-05-13',start:'15:00',end:'17:00',aula:A2},ext:null},
+  {c:2,name:'Ética y Deontología Profesional',ord:null,ext:{date:'2027-06-29',start:'16:00',end:'18:00',aula:A2}},
+  {c:2,name:'Inteligencia Artificial II',ord:{date:'2027-05-17',start:'15:00',end:'17:00',aula:A6},ext:{date:'2027-06-22',start:'16:00',end:'19:00',aula:A6}},
+  {c:2,name:'Administración de Sistemas',ord:{date:'2027-05-19',start:'15:00',end:'17:00',aula:A2},ext:{date:'2027-07-01',start:'15:00',end:'17:00',aula:A2}},
+  {c:2,name:'Programación Orient. a Objetos',ord:{date:'2027-05-21',start:'09:00',end:'11:00',aula:A6},ext:{date:'2027-06-23',start:'09:00',end:'11:00',aula:A6}},
+  {c:2,name:'Complejidad Computacional',ord:{date:'2027-05-24',start:'15:00',end:'17:00',aula:A3},ext:{date:'2027-06-23',start:'16:00',end:'18:00',aula:A3}},
+  {c:2,name:'Tecnología Blockchain',ord:{date:'2027-05-25',start:'15:00',end:'16:00',aula:'1.6'},ext:{date:'2027-06-19',start:'12:00',end:'13:00',aula:'1.6'}},
+  {c:2,name:'Proyecto II',ord:{date:'2027-05-27',start:'15:00',end:'20:00',aula:'Labo ISIA'},ext:{date:'2027-06-28',start:'15:00',end:'18:00',aula:'Labo ISIA'}}
 ];
 const DOW_SHORT=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 let curConv='ord';
 function renderExams(){
   const wrap=document.getElementById('examList');
   const today=new Date(todayStr()+'T00:00');
-  const list=EXAMENES.filter(e=>e[curConv]).map(e=>({name:e.name,...e[curConv]}))
+  const list=EXAMENES.filter(e=>e[curConv]).map(e=>({name:e.name,c:e.c,...e[curConv]}))
     .sort((a,b)=>(a.date+(a.start||'')).localeCompare(b.date+(b.start||'')));
   const next=list.find(x=>x.date>=todayStr());
-  wrap.innerHTML=list.map(x=>{
+  const perDay={};list.forEach(x=>perDay[x.date]=(perDay[x.date]||0)+1);
+  const item=x=>{
     const d=new Date(x.date+'T00:00');
     const diff=Math.round((d-today)/86400000);
     const when=diff<0?'ya pasado':diff===0?'HOY':diff===1?'MAÑANA':'en '+diff+' días';
@@ -510,12 +513,15 @@ function renderExams(){
     return `<div class="up-item" style="border-left-color:${color};cursor:default${diff<0?';opacity:.5':''}${x===next?';box-shadow:0 0 0 1px var(--accent2)':''}">
       <div class="up-when"><div class="big">${d.getDate()}</div><div class="sm">${MONTHS[d.getMonth()].slice(0,3)} ${d.getFullYear()}</div></div>
       <div class="up-body"><b>${x.name}</b>
-        <div class="meta">${DOW_SHORT[d.getDay()]} · ${x.start?x.start+'–'+x.end:'hora por confirmar'} · ${when}</div></div>
+        <div class="meta">${DOW_SHORT[d.getDay()]} · ${x.start?x.start+'–'+x.end:'hora por confirmar'} · ${x.aula?'Aula '+x.aula:'aula por confirmar'} · ${when}</div>
+        ${perDay[x.date]>1?`<div class="meta" style="color:var(--media);font-weight:700">⚠ ${perDay[x.date]} exámenes este día</div>`:''}</div>
       <span class="badge" style="background:${color}">${x===next?'Siguiente':diff<0?'Hecho':diff+' d'}</span>
     </div>`;
+  };
+  wrap.innerHTML=[1,2].map(c=>{
+    const g=list.filter(x=>x.c===c);
+    return g.length?`<h3 class="exam-group">${c}º Cuatrimestre</h3>`+g.map(item).join(''):'';
   }).join('');
-  const sin=EXAMENES.filter(e=>!e.ord&&!e.ext).map(e=>e.name);
-  if(sin.length) wrap.innerHTML+=`<div class="empty" style="padding:18px;font-size:13px">Sin fecha en el cuadro: ${sin.join(', ')}</div>`;
 }
 document.querySelectorAll('#conv-seg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#conv-seg button').forEach(x=>x.classList.remove('active'));
