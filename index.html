@@ -142,7 +142,7 @@
   @media (max-width:640px){
     header{padding:14px 14px}
     header h1{font-size:17px}
-    .tabs{width:100%;justify-content:center}
+    .tabs{width:100%;justify-content:center;flex-wrap:wrap}
     .tab{padding:8px 12px;font-size:13px}
     main{padding:14px 12px}
     .toolbar{flex-direction:column;align-items:stretch;gap:10px}
@@ -170,6 +170,7 @@
     <button class="tab active" data-view="horario">Horario semanal</button>
     <button class="tab" data-view="calendario">Calendario</button>
     <button class="tab" data-view="proximas">Próximas entregas</button>
+    <button class="tab" data-view="examenes">Exámenes</button>
   </div>
 </header>
 
@@ -214,6 +215,16 @@
       </div>
     </div>
     <div class="up-list" id="upcoming"></div>
+  </section>
+
+  <section class="view" id="view-examenes">
+    <div class="toolbar">
+      <div class="seg" id="conv-seg">
+        <button class="active" data-conv="ord">Ordinaria</button>
+        <button data-conv="ext">Extraordinaria</button>
+      </div>
+    </div>
+    <div class="up-list" id="examList"></div>
   </section>
 </main>
 
@@ -459,8 +470,58 @@ document.querySelectorAll('#cuatri-seg button').forEach(b=>b.onclick=()=>{
 document.getElementById('prevM').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderMonth();};
 document.getElementById('nextM').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderMonth();};
 
+/* ===== EXÁMENES =====
+   Solo mis asignaturas. Fechas sacadas del cuadro oficial (grupo 3ºA).
+   ord = convocatoria ordinaria · ext = extraordinaria · null = sin fecha en el cuadro */
+const EXAMENES=[
+  {name:'Ingeniería del Software II',ord:{date:'2026-12-17',start:'15:00',end:'17:00'},ext:{date:'2027-06-21',start:'15:00',end:'17:00'}},
+  {name:'Aprendizaje Estad. y Data Mining',ord:{date:'2027-01-11',start:'15:00',end:'17:00'},ext:{date:'2027-06-18',start:'15:00',end:'17:00'}},
+  {name:'Interacción Persona Ordenador',ord:{date:'2027-01-13',start:'15:00',end:'17:00'},ext:{date:'2027-06-25',start:'15:00',end:'17:00'}},
+  {name:'Inteligencia Artificial I',ord:{date:'2027-01-14',start:'15:00',end:'17:00'},ext:{date:'2027-06-15',start:'16:00',end:'18:00'}},
+  {name:'Arquitectura y Org. de Computadores',ord:{date:'2027-01-15',start:'09:00',end:'11:00'},ext:{date:'2027-06-16',start:'09:00',end:'11:00'}},
+  {name:'Estructura de Datos y Algoritmos',ord:{date:'2027-01-19',start:'10:00',end:'14:00'},ext:{date:'2027-06-18',start:'09:00',end:'14:00'}},
+  {name:'Seguridad en Aplicaciones Móviles y Web',ord:{date:'2027-01-19',start:'15:00',end:'16:00'},ext:{date:'2027-06-30',start:'15:00',end:'16:00'}},
+  {name:'Bases de Datos Avanzadas',ord:{date:'2027-05-10',start:'15:00',end:'17:00'},ext:{date:'2027-06-17',start:'17:00',end:'19:00'}},
+  {name:'Seguridad en el Internet de las Cosas',ord:{date:'2027-05-12',start:'15:00',end:'16:00'},ext:{date:'2027-06-14',start:'20:00',end:'21:00'}},
+  {name:'Ética y Deontología Profesional',ord:{date:'2027-05-13',start:'15:00',end:'17:00'},ext:{date:'2027-06-29',start:'16:00',end:'18:00'}},
+  {name:'Inteligencia Artificial II',ord:{date:'2027-05-17',start:'15:00',end:'17:00'},ext:{date:'2027-06-22',start:'16:00',end:'19:00'}},
+  {name:'Administración de Sistemas',ord:{date:'2027-05-19',start:'15:00',end:'17:00'},ext:{date:'2027-07-01',start:'15:00',end:'17:00'}},
+  {name:'Programación Orient. a Objetos',ord:{date:'2027-05-21',start:'09:00',end:'11:00'},ext:{date:'2027-06-23',start:'09:00',end:'11:00'}},
+  {name:'Complejidad Computacional',ord:{date:'2027-05-24',start:'15:00',end:'17:00'},ext:{date:'2027-06-23',start:'16:00',end:'18:00'}},
+  {name:'Tecnología Blockchain',ord:{date:'2027-05-25',start:'15:00',end:'16:00'},ext:{date:'2027-06-19',start:'12:00',end:'13:00'}},
+  {name:'Proyecto II',ord:{date:'2027-05-27',start:'15:00',end:'20:00'},ext:{date:'2027-06-28',start:'15:00',end:'18:00'}},
+  {name:'Cálculo',ord:null,ext:null}
+];
+const DOW_SHORT=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let curConv='ord';
+function renderExams(){
+  const wrap=document.getElementById('examList');
+  const today=new Date(todayStr()+'T00:00');
+  const list=EXAMENES.filter(e=>e[curConv]).map(e=>({name:e.name,...e[curConv]}))
+    .sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+  const next=list.find(x=>x.date>=todayStr());
+  wrap.innerHTML=list.map(x=>{
+    const d=new Date(x.date+'T00:00');
+    const diff=Math.round((d-today)/86400000);
+    const when=diff<0?'ya pasado':diff===0?'HOY':diff===1?'MAÑANA':'en '+diff+' días';
+    const color=diff<0?'var(--t-otro)':diff<=7?'var(--alta)':diff<=21?'var(--media)':'var(--baja)';
+    return `<div class="up-item" style="border-left-color:${color};cursor:default${diff<0?';opacity:.5':''}${x===next?';box-shadow:0 0 0 1px var(--accent2)':''}">
+      <div class="up-when"><div class="big">${d.getDate()}</div><div class="sm">${MONTHS[d.getMonth()].slice(0,3)} ${d.getFullYear()}</div></div>
+      <div class="up-body"><b>${x.name}</b>
+        <div class="meta">${DOW_SHORT[d.getDay()]} · ${x.start}–${x.end} · ${when}</div></div>
+      <span class="badge" style="background:${color}">${x===next?'Siguiente':diff<0?'Hecho':diff+' d'}</span>
+    </div>`;
+  }).join('');
+  const sin=EXAMENES.filter(e=>!e[curConv]).map(e=>e.name);
+  if(sin.length) wrap.innerHTML+=`<div class="empty" style="padding:18px;font-size:13px">Sin fecha en el cuadro: ${sin.join(', ')}</div>`;
+}
+document.querySelectorAll('#conv-seg button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#conv-seg button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');curConv=b.dataset.conv;renderExams();
+});
+
 /* ===== ARRANQUE ===== */
-renderTimetable();renderMonth();renderUpcoming();fillSubjects();
+renderTimetable();renderMonth();renderUpcoming();fillSubjects();renderExams();
 </script>
 </body>
 </html>
