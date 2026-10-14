@@ -338,6 +338,21 @@ const KEY='horario_eventos_2627';
 let events=JSON.parse(localStorage.getItem(KEY)||'[]');
 let calDate=(()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),1);})();
 function save(){localStorage.setItem(KEY,JSON.stringify(events));}
+/* Entregas fijas: salen en todos los dispositivos (no se editan desde la web) */
+const FIXED_EVENTS=[
+  {title:'Entrega IPO',date:'2026-10-25',time:'',type:'entrega',subject:'Interacción Persona Ordenador'},
+  {title:'Examen P1',date:'2026-10-26',time:'08:00',type:'examen',subject:''},
+  {title:'Entrega P1',date:'2026-11-01',time:'',type:'entrega',subject:''},
+  {title:'Entrega P2',date:'2026-11-22',time:'',type:'entrega',subject:''},
+  {title:'Examen P2',date:'2026-11-23',time:'08:00',type:'examen',subject:''},
+  {title:'Examen P3',date:'2026-12-14',time:'08:00',type:'examen',subject:''},
+  {title:'Entrega P3',date:'2026-12-16',time:'',type:'entrega',subject:''}
+].map((e,i)=>({...e,id:'fix'+(i+1),notes:'',fixed:true}));
+function allEvents(){
+  const k=e=>e.title.trim().toLowerCase()+'|'+e.date;
+  const fx=new Set(FIXED_EVENTS.map(k));
+  return [...FIXED_EVENTS,...events.filter(e=>!fx.has(k(e)))];
+}
 
 const MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const TYPE_COLOR={entrega:'var(--t-entrega)',examen:'var(--t-examen)',practica:'var(--t-practica)',recordatorio:'var(--t-recordatorio)',otro:'var(--t-otro)'};
@@ -365,11 +380,11 @@ function renderMonth(){
     const el=document.createElement('div');
     el.className='day'+(c.other?' other':'')+(ds===todayStr()?' today':'');
     el.innerHTML=`<div class="num">${c.d}</div>`;
-    events.filter(e=>e.date===ds).sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach(e=>{
+    allEvents().filter(e=>e.date===ds).sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach(e=>{
       const ev=document.createElement('div');ev.className='ev';
       ev.style.background=TYPE_COLOR[e.type];
       ev.textContent=(e.time?e.time+' ':'')+e.title;
-      ev.onclick=(x)=>{x.stopPropagation();openModal(e);};
+      ev.onclick=(x)=>{x.stopPropagation();if(!e.fixed)openModal(e);};
       el.appendChild(ev);
     });
     el.onclick=()=>openModal(null,ds);
@@ -380,7 +395,7 @@ function renderMonth(){
 function renderUpcoming(){
   const wrap=document.getElementById('upcoming');
   const today=todayStr();
-  const list=events.filter(e=>e.date>=today).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+  const list=allEvents().filter(e=>e.date>=today).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
   if(!list.length){wrap.innerHTML='<div class="empty">No tienes nada apuntado todavía.<br>Ve al Calendario y añade tu primera entrega 📌</div>';return;}
   wrap.innerHTML='';
   list.forEach(e=>{
@@ -394,7 +409,7 @@ function renderUpcoming(){
       <div class="up-body"><b>${e.title}</b>
         <div class="meta">${e.subject?e.subject+' · ':''}${e.time?e.time+' · ':''}${when}${e.notes?' · '+e.notes:''}</div></div>
       <span class="badge" style="background:${TYPE_COLOR[e.type]}">${TYPE_LABEL[e.type]}</span>`;
-    item.onclick=()=>openModal(e);
+    if(!e.fixed)item.onclick=()=>openModal(e);else item.style.cursor='default';
     wrap.appendChild(item);
   });
 }
