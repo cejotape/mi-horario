@@ -346,7 +346,8 @@ const FIXED_EVENTS=[
   {title:'Entrega P2',date:'2026-11-22',time:'',type:'entrega',subject:''},
   {title:'Examen P2',date:'2026-11-23',time:'08:00',type:'examen',subject:''},
   {title:'Examen P3',date:'2026-12-14',time:'08:00',type:'examen',subject:''},
-  {title:'Entrega P3',date:'2026-12-16',time:'',type:'entrega',subject:''}
+  {title:'Entrega P3',date:'2026-12-16',time:'',type:'entrega',subject:''},
+  {title:'Entrega PW I DM',date:'2026-11-15',time:'',type:'entrega',subject:''}
 ].map((e,i)=>({...e,id:'fix'+(i+1),notes:'',fixed:true}));
 function allEvents(){
   const k=e=>e.title.trim().toLowerCase()+'|'+e.date;
